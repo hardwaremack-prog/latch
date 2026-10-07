@@ -1,5 +1,7 @@
 # Latch
 
+
+![Latch](screenshot.png)
 An offline, KeePass-style password safe in a single HTML file.
 
 ## Use it
