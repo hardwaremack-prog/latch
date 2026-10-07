@@ -257,6 +257,11 @@ function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.s
 let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600)}
 
 /* ---------- crypto ---------- */
+function cryptoProblem(){
+ if(window.crypto&&crypto.subtle)return'';
+ return'This browser is blocking the encryption Latch needs, because of how the page was opened. Try opening the file directly in Chrome, Edge or Firefox on a computer.';
+}
+addEventListener('DOMContentLoaded',()=>{const p=cryptoProblem();if(p){$('#openErr').textContent=p;$('#createErr').textContent=p}});
 async function deriveKey(pw,salt,iter){
  const base=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveKey']);
  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:iter,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
@@ -339,7 +344,7 @@ $('#openForm').onsubmit=async e=>{
  try{const r=await openSealed(S.pending.text,$('#openPw').value);
   Object.assign(S,{vault:r.vault,key:r.key,salt:r.salt,iter:r.iter,handle:S.pending.handle,fileName:S.pending.name,dirty:false,group:'all',sel:null});
   S.pending=null;$('#openPw').value='';$('#pickedName').textContent='';enterApp();}
- catch(x){err.textContent=x.message}
+ catch(x){err.textContent=cryptoProblem()||x.message}
  finally{btn.disabled=false;btn.textContent='Unlock'}
 };
 $('#createForm').onsubmit=async e=>{
@@ -351,6 +356,7 @@ $('#createForm').onsubmit=async e=>{
   Object.assign(S,{vault:newVault($('#newName').value.trim()||'My Vault'),salt,iter:ITER,key:await deriveKey(pw,salt,ITER),handle:null,dirty:true,group:'all',sel:null});
   S.fileName=safeName(S.vault.name)+'.latch';
   $('#newPw').value=$('#newPw2').value='';paintMeter($('#newMeter'),$('#newMeterLbl'),'');enterApp();}
+ catch(x){err.textContent=cryptoProblem()||('Something went wrong: '+x.message)}
  finally{btn.disabled=false;btn.textContent='Create vault'}
 };
 function enterApp(){S.lastAct=Date.now();show('app');renderAll();$('#search').value='';}
